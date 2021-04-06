@@ -336,4 +336,5 @@ $RECYCLE.BIN/
 *.lnk
 .classpath
 .project
+.settings
 # End of https://www.toptal.com/developers/gitignore/api/maven,macos,windows,linux,visualstudiocode,intellij,intellij+all,intellij+iml,java
