@@ -9,7 +9,7 @@ import retrofit2.http.Path;
 
 public interface ServersFtpApi {
     @GET("servers/")
-    Call<?> getAllServers();
+    Call<Servers> getAllServers();
 
     @POST("servers/")
     Call<?> createServer(@Body Server server);
