@@ -1,4 +1,4 @@
-package agent_flopbox;
+package agent_flopbox.api;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
