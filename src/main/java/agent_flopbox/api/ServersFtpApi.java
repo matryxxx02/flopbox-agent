@@ -6,10 +6,12 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
+import java.util.List;
+
 
 public interface ServersFtpApi {
     @GET("servers/")
-    Call<Servers> getAllServers();
+    Call<List<Server>> getAllServers();
 
     @POST("servers/")
     Call<?> createServer(@Body Server server);
