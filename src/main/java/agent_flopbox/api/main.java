@@ -20,7 +20,7 @@ public class main {
 
             @Override
             public void onFailure(Call<Servers> call, Throwable t) {
-                System.out.println("response.body()");
+                System.out.println("cxvxcv");
             }
         });
     }
