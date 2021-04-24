@@ -1,14 +1,13 @@
 package agent_flopbox.Services;
 
+
 import okhttp3.ResponseBody;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
-import java.net.MalformedURLException;
+import java.net.HttpURLConnection;
 import java.net.URL;
-
-import static org.glassfish.jersey.client.ClientProperties.CONNECT_TIMEOUT;
-import static org.glassfish.jersey.client.ClientProperties.READ_TIMEOUT;
+import java.net.URLConnection;
 
 public class FunctionsApi {
 
@@ -19,59 +18,66 @@ public class FunctionsApi {
      * @param body
      * @return
      */
-    public void saveFile2(ResponseBody body) throws IOException {
-        FileUtils.copyURLToFile(new URL("http://localhost:8080/file/home/Main.py"), new File("./public/new.txt"), 10, 1000);
+    public void saveFile(ResponseBody body,String alias, String path) throws IOException {
+        FileUtils.copyURLToFile(new URL("http://localhost:8080/servers/" + alias+"/" + path), new File("./"+alias+path));
     }
 
-    public boolean saveFile(ResponseBody body) {
-        System.out.println(">> DEBUG : SaveFile Function");
+    public void uploadFile(String alias, String path) throws  IOException{
+
+        URLConnection urlconnection = null;
         try {
-            File futureFile = new File("get.txt");
+            File file = FileUtils.getFile(alias, path);
+            URL url = new URL("http://localhost:8080/servers/"+alias+path);
+            System.out.println(alias+path);
+            urlconnection = url.openConnection();
+            urlconnection.setDoOutput(true);
+            urlconnection.setDoInput(true);
 
-            InputStream inputStream = null;
-            OutputStream outputStream = null;
-
-            try {
-                byte[] fileReader = new byte[4096];
-
-                long fileSize = body.contentLength();
-                long fileSizeDownloaded = 0;
-
-                inputStream = body.byteStream();
-                outputStream = new FileOutputStream(futureFile);
-
-                while (true) {
-                    int read = inputStream.read(fileReader);
-
-                    if (read == -1) {
-                        break;
-                    }
-
-                    outputStream.write(fileReader, 0, read);
-
-                    fileSizeDownloaded += read;
-
-                    System.out.println("file download: " + fileSizeDownloaded + " of " + fileSize);
-                }
-
-                outputStream.flush();
-                inputStream.close();
-                outputStream.close();
-                System.exit(0);
-                return true;
-            } catch (IOException e) {
-                return false;
-            } finally {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-
-                if (outputStream != null) {
-                    outputStream.close();
-                }
+            if (urlconnection instanceof HttpURLConnection) {
+                ((HttpURLConnection) urlconnection).setRequestMethod("POST");
+                ((HttpURLConnection) urlconnection).setRequestProperty("Content-type", "Multipart/form-data");
+                ((HttpURLConnection) urlconnection).connect();
             }
-        } catch (IOException e) {
-            return false;
+
+            BufferedOutputStream bos = new BufferedOutputStream(urlconnection.getOutputStream());
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+            int i;
+            // read byte by byte until end of stream
+            while ((i = bis.read()) > 0) {
+                bos.write(i);
+            }
+            bis.close();
+            bos.close();
+            System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        try {
+
+            InputStream inputStream;
+            int responseCode = ((HttpURLConnection) urlconnection).getResponseCode();
+            if ((responseCode >= 200) && (responseCode <= 202)) {
+                inputStream = ((HttpURLConnection) urlconnection).getInputStream();
+                int j;
+                while ((j = inputStream.read()) > 0) {
+                    System.out.println(j);
+                }
+
+            } else {
+                inputStream = ((HttpURLConnection) urlconnection).getErrorStream();
+            }
+            ((HttpURLConnection) urlconnection).disconnect();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
+
+    public void deleteFile(String alias, String path) throws IOException {
+        uploadFile(alias, path);
+
+    }
+
+
 }

@@ -1,5 +1,6 @@
 package agent_flopbox.API;
 
+import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.*;
@@ -16,10 +17,10 @@ public interface ServersFtpApi {
 
     //TODO typer le call + finir les methodes
 
-    @POST("servers/{alias}/{path}")
+    @POST("file/{alias}/{path}")
     Call<ResponseBody> createFileOrDir(@Path("alias") String alias, @Path("path") String path);
 
-    @GET("servers/{alias}/{path}")
+    @GET("file/{alias}/{path}")
     Call<ResponseBody> getFileOrDir(@Path("alias") String alias, @Path("path") String path);
 
     @DELETE("servers/{alias}/{path}")

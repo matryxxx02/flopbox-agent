@@ -3,6 +3,7 @@ package agent_flopbox.Services;
 import agent_flopbox.API.FtpApiClient;
 import agent_flopbox.API.Server;
 import agent_flopbox.API.ServersFtpApi;
+import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,16 +25,12 @@ public class Controllers {
      * @param alias
      * @param path
      */
-    public void get(String alias, String path){
-        System.out.println(">> DEBUG : /"+alias + "/" + path);
-
+    public void get(final String alias, final String path){
         this.serverApi.getFileOrDir(alias, path).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                System.out.println(">> DEBUG : ENTRER DANS LA FONCTION GET");
-                System.out.println(response.body().contentLength());
                 try {
-                    functionsApi.saveFile2(response.body());
+                    functionsApi.saveFile(response.body(), alias,  path);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -42,6 +39,29 @@ public class Controllers {
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 System.out.println("Fail to get File or Directory");
+            }
+        });
+    }
+
+    /**
+     *
+     * @param alias
+     * @param path
+     */
+    public void create(final String alias, final String path){
+        this.serverApi.createFileOrDir(alias, path).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                try {
+                    functionsApi.uploadFile(alias, path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                System.out.println("Fail to update File or Directory");
             }
         });
     }
@@ -68,20 +88,6 @@ public class Controllers {
 
     public void update(String alias, String path){
         this.serverApi.updateFileOrDir(alias, path).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                response.body();
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                System.out.println("Fail to update File or Directory");
-            }
-        });
-    }
-
-    public void create(String alias, String path){
-        this.serverApi.createFileOrDir(alias, path).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 response.body();
