@@ -15,6 +15,7 @@ public class Checksum {
             md = dis.getMessageDigest();
         }
 
+
         // bytes to hex
         StringBuilder result = new StringBuilder();
         for (byte b : md.digest()) {
