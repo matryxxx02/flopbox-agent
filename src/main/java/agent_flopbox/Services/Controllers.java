@@ -30,7 +30,7 @@ public class Controllers {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-                    functionsApi.saveFile(response.body(), alias,  path);
+                    functionsApi.saveFile(alias,  path);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

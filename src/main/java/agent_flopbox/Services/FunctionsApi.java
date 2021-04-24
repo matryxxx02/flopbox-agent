@@ -13,15 +13,21 @@ public class FunctionsApi {
 
     public FunctionsApi(){}
     /**
-     *
-     * @param
-     * @param body
-     * @return
+     * Allows to save the File form the remote server
+     * @param alias Server's alias
+     * @param path File's path
+     * @return void
      */
-    public void saveFile(ResponseBody body,String alias, String path) throws IOException {
+    public void saveFile(String alias, String path) throws IOException {
         FileUtils.copyURLToFile(new URL("http://localhost:8080/servers/" + alias+"/" + path), new File("./"+alias+path));
     }
 
+    /**
+     * Allows to upload local file to remote server
+     * @param alias Server's alias
+     * @param path File's path
+     * @throws IOException
+     */
     public void uploadFile(String alias, String path) throws  IOException{
 
         URLConnection urlconnection = null;
@@ -49,31 +55,18 @@ public class FunctionsApi {
             bis.close();
             bos.close();
             System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
+            ((HttpURLConnection) urlconnection).disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try {
-
-            InputStream inputStream;
-            int responseCode = ((HttpURLConnection) urlconnection).getResponseCode();
-            if ((responseCode >= 200) && (responseCode <= 202)) {
-                inputStream = ((HttpURLConnection) urlconnection).getInputStream();
-                int j;
-                while ((j = inputStream.read()) > 0) {
-                    System.out.println(j);
-                }
-
-            } else {
-                inputStream = ((HttpURLConnection) urlconnection).getErrorStream();
-            }
-            ((HttpURLConnection) urlconnection).disconnect();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
+    /**
+     * Allows to move the deleted file to the right directory
+     * @param alias Server's alias
+     * @param path File's path in local
+     * @throws IOException
+     */
     public void uploadFileBeforeDeleted(String alias, String path) throws  IOException{
 
         URLConnection urlconnection = null;
@@ -101,31 +94,19 @@ public class FunctionsApi {
             bis.close();
             bos.close();
             System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-
-            InputStream inputStream;
-            int responseCode = ((HttpURLConnection) urlconnection).getResponseCode();
-            if ((responseCode >= 200) && (responseCode <= 202)) {
-                inputStream = ((HttpURLConnection) urlconnection).getInputStream();
-                int j;
-                while ((j = inputStream.read()) > 0) {
-                    System.out.println(j);
-                }
-
-            } else {
-                inputStream = ((HttpURLConnection) urlconnection).getErrorStream();
-            }
             ((HttpURLConnection) urlconnection).disconnect();
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
+    /**
+     * Allows to delete file and move the file in right directory in remote server
+     * @param alias Server's alias
+     * @param path File's path
+     * @throws IOException
+     */
     public void deleteFile(String alias, String path) throws IOException {
         uploadFileBeforeDeleted(alias, path);
 
@@ -143,30 +124,10 @@ public class FunctionsApi {
             }
 
             System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
+            ((HttpURLConnection) urlconnection).disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try {
-
-            InputStream inputStream;
-            int responseCode = ((HttpURLConnection) urlconnection).getResponseCode();
-            if ((responseCode >= 200) && (responseCode <= 202)) {
-                inputStream = ((HttpURLConnection) urlconnection).getInputStream();
-                int j;
-                while ((j = inputStream.read()) > 0) {
-                    System.out.println(j);
-                }
-
-            } else {
-                inputStream = ((HttpURLConnection) urlconnection).getErrorStream();
-            }
-            ((HttpURLConnection) urlconnection).disconnect();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
     }
 
 

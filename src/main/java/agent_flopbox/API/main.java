@@ -8,6 +8,6 @@ public class main {
     public static void main(String[] args) {
         Controllers controllers = new Controllers();
 
-        controllers.delete("home", "/ztest/chose.txt");
+        controllers.get("home", "/deleted/chose.txt");
     }
 }
