@@ -1,4 +1,4 @@
-package agent_flopbox.api;
+package agent_flopbox.API;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -14,5 +14,13 @@ public class Server {
     public Server(String alias, String url) {
         this.alias = alias;
         this.url = url;
+    }
+
+    public String getAlias(){
+        return  this.alias;
+    }
+
+    public String getUrl(){
+        return this.url;
     }
 }

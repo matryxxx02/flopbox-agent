@@ -1,4 +1,4 @@
-package agent_flopbox.api;
+package agent_flopbox.API;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
