@@ -71,12 +71,16 @@ public class Controllers {
      * @param alias
      * @param path
      */
-    public void delete(String alias, String path){
+    public void delete(final String alias, final String path){
 
         this.serverApi.deleteFile(alias, path).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                response.body();
+                try {
+                    functionsApi.deleteFile(alias, path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override

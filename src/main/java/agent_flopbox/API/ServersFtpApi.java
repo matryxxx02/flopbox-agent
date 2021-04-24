@@ -17,10 +17,10 @@ public interface ServersFtpApi {
 
     //TODO typer le call + finir les methodes
 
-    @POST("file/{alias}/{path}")
+    @POST("servers/{alias}/{path}")
     Call<ResponseBody> createFileOrDir(@Path("alias") String alias, @Path("path") String path);
 
-    @GET("file/{alias}/{path}")
+    @GET("servers/{alias}/{path}")
     Call<ResponseBody> getFileOrDir(@Path("alias") String alias, @Path("path") String path);
 
     @DELETE("servers/{alias}/{path}")
