@@ -1,11 +1,11 @@
-Systèmes Répartis : FLopBox
+Systèmes Répartis : Agent pour le service FlopBox
 ----------
 
 FERNANDES Nicolas
 
 PHU Valentin
 
-06/04/2021
+25/04/2021
 
 ----------
 
@@ -13,7 +13,6 @@ Afin de récupérer le dépôt git et de l'exécuter, suivre les commandes suiva
 
 Si vous n'avez pas installé Maven, voici un lien pour le faire : http://maven.apache.org/install.html
 
-        
         $ git clone https://gitlab-etu.fil.univ-lille1.fr/phu/flopbox-agent-fernandes-phu
         $ mvn package
 
@@ -30,6 +29,7 @@ Pour lancer l'agent Flopbox
 **Introduction**
 
 Ce logiciel permet la communication entre un client local et un server HTTP.
+Et de mettre à jour les fichiers en local avec les fichiers sur le server distant et vice-versa
 
 Vidéo démo sur Youtube : 
 

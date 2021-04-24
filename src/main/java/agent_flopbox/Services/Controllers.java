@@ -1,123 +1,135 @@
 package agent_flopbox.Services;
 
-import agent_flopbox.API.FtpApiClient;
-import agent_flopbox.API.Server;
-import agent_flopbox.API.ServersFtpApi;
-import okhttp3.MultipartBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import org.apache.commons.io.FileUtils;
 
-import java.io.IOException;
-import java.util.List;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 
+/**
+ * Allows to manage actions between local files and remite files
+ */
 public class Controllers {
-    protected ServersFtpApi serverApi;
-    protected FunctionsApi functionsApi = new FunctionsApi();
 
-    public Controllers(){
-        this.serverApi = FtpApiClient.createService(ServersFtpApi.class);
+    public Controllers(){}
+    /**
+     * Allows to save the File form the remote server
+     * @param alias Server's alias
+     * @param path File's path
+     * @return void
+     */
+    public void saveFile(String alias, String path) throws IOException {
+        FileUtils.copyURLToFile(new URL("http://localhost:8080/file/" + alias+"/" + path), new File("./"+alias+path));
     }
 
     /**
-     *
-     * @param alias
-     * @param path
+     * Allows to upload local file to remote server
+     * @param alias Server's alias
+     * @param path File's path
+     * @throws IOException
      */
-    public void get(final String alias, final String path){
-        this.serverApi.getFileOrDir(alias, path).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    functionsApi.saveFile(alias,  path);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    public void uploadFile(String alias, String path) throws  IOException{
+
+        URLConnection urlconnection = null;
+        try {
+            File file = FileUtils.getFile(alias, path);
+            URL url = new URL("http://localhost:8080/file/"+alias+path);
+            System.out.println(alias+path);
+            urlconnection = url.openConnection();
+            urlconnection.setDoOutput(true);
+            urlconnection.setDoInput(true);
+
+            if (urlconnection instanceof HttpURLConnection) {
+                ((HttpURLConnection) urlconnection).setRequestMethod("POST");
+                ((HttpURLConnection) urlconnection).setRequestProperty("Content-type", "Multipart/form-data");
+                ((HttpURLConnection) urlconnection).connect();
             }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                System.out.println("Fail to get File or Directory");
+            BufferedOutputStream bos = new BufferedOutputStream(urlconnection.getOutputStream());
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+            int i;
+            // read byte by byte until end of stream
+            while ((i = bis.read()) > 0) {
+                bos.write(i);
             }
-        });
+            bis.close();
+            bos.close();
+            System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
+            ((HttpURLConnection) urlconnection).disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
-     *
-     * @param alias
-     * @param path
+     * Allows to move the deleted file to the right directory
+     * @param alias Server's alias
+     * @param path File's path in local
+     * @throws IOException
      */
-    public void create(final String alias, final String path){
-        this.serverApi.createFileOrDir(alias, path).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    functionsApi.uploadFile(alias, path);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+    public void uploadFileBeforeDeleted(String alias, String path) throws  IOException{
+
+        URLConnection urlconnection = null;
+        try {
+            File file = FileUtils.getFile(alias, path);
+            URL url = new URL("http://localhost:8080/file/"+alias+"/deleted/"+file.getName());
+            System.out.println(alias+"/deleted/"+file.getName());
+            urlconnection = url.openConnection();
+            urlconnection.setDoOutput(true);
+            urlconnection.setDoInput(true);
+
+            if (urlconnection instanceof HttpURLConnection) {
+                ((HttpURLConnection) urlconnection).setRequestMethod("POST");
+                ((HttpURLConnection) urlconnection).setRequestProperty("Content-type", "Multipart/form-data");
+                ((HttpURLConnection) urlconnection).connect();
             }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                System.out.println("Fail to update File or Directory");
+            BufferedOutputStream bos = new BufferedOutputStream(urlconnection.getOutputStream());
+            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+            int i;
+            // read byte by byte until end of stream
+            while ((i = bis.read()) > 0) {
+                bos.write(i);
             }
-        });
+            bis.close();
+            bos.close();
+            System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
+            ((HttpURLConnection) urlconnection).disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
-     *
-     * @param alias
-     * @param path
+     * Allows to delete file and move the file in right directory in remote server
+     * @param alias Server's alias
+     * @param path File's path
+     * @throws IOException
      */
-    public void delete(final String alias, final String path){
+    public void deleteFile(String alias, String path) throws IOException {
+        uploadFileBeforeDeleted(alias, path);
 
-        this.serverApi.deleteFile(alias, path).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    functionsApi.deleteFile(alias, path);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        URLConnection urlconnection = null;
+        try {
+            URL url = new URL("http://localhost:8080/file/"+alias+path);
+            System.out.println(alias+path);
+            urlconnection = url.openConnection();
+            urlconnection.setDoOutput(true);
+            urlconnection.setDoInput(true);
+
+            if (urlconnection instanceof HttpURLConnection) {
+                ((HttpURLConnection) urlconnection).setRequestMethod("DELETE");
+                ((HttpURLConnection) urlconnection).connect();
             }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                System.out.println("Fail to delete file");
-            }
-        });
+            System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
+            ((HttpURLConnection) urlconnection).disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public void update(String alias, String path){
-        this.serverApi.updateFileOrDir(alias, path).enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                response.body();
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                System.out.println("Fail to update File or Directory");
-            }
-        });
-    }
-
-    public void getServers(){
-        serverApi.getAllServers().enqueue(new Callback<List<Server>>() {
-            @Override
-            public void onResponse(Call<List<Server>> call, Response<List<Server>> response) {
-                if (response.isSuccessful()) {
-                    System.out.println(response.body());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Server>> call, Throwable t) {
-                System.out.println("cxvxcv");
-            }
-        });
-    }
 
 }

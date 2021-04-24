@@ -1,13 +1,9 @@
 package agent_flopbox;
 
+
+import agent_flopbox.Services.Controllers;
+
 import java.io.IOException;
-import java.net.URI;
-
-
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.server.ResourceConfig;
-
 
 /**
  * Main class.
@@ -15,8 +11,11 @@ import org.glassfish.jersey.server.ResourceConfig;
  */
 public class Main {
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException {
+        Controllers controllers = new Controllers();
+        Controllers api = new Controllers();
 
+        api.deleteFile("home", "/Second.py");
     }
 }
 
