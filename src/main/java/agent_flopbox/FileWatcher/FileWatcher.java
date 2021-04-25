@@ -1,4 +1,4 @@
-package FileWatcher;
+package agent_flopbox.FileWatcher;
 
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
@@ -12,7 +12,7 @@ public class FileWatcher {
 
         FileAlterationObserver observer = new FileAlterationObserver(directoryToWatch);
         FileAlterationMonitor monitor = new FileAlterationMonitor(INTERVAL);
-        FileAlterationListener listener = new CustomFileAlterationListener();
+        FileAlterationListener listener = new CustomFileAlterationListener("yky");
         observer.addListener(listener);
         monitor.addObserver(observer);
         monitor.start();
