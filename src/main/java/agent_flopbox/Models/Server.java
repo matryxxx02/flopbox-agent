@@ -12,6 +12,14 @@ public class Server {
         return alias;
     }
 
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public String getUrl() {
         return url;
     }

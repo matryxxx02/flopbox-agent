@@ -1,9 +1,8 @@
 package agent_flopbox.Services;
 
+import agent_flopbox.Models.Checksum;
 import agent_flopbox.Models.Server;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.FileUtils;
 
@@ -13,17 +12,17 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Allows to manage actions between local files and remite files
  */
 public class Controllers {
+
+    protected String URL = "http://localhost:8080/server/";
+    protected int TIMEOUT = 10000;
 
     public Controllers(){}
     /**
@@ -146,17 +145,21 @@ public class Controllers {
         }
     }
 
-    public List<Server> getServers(String url, int timeout) {
+    /**
+     * Allows to Flopbox's servers
+     * @return List of servers
+     */
+    public List<Server> getServers() {
         HttpURLConnection urlconnection = null;
         try {
-            URL u = new URL(url);
+            URL u = new URL(URL);
             urlconnection = (HttpURLConnection) u.openConnection();
             urlconnection.setRequestMethod("GET");
             urlconnection.setRequestProperty("Content-length", "0");
             urlconnection.setUseCaches(false);
             urlconnection.setAllowUserInteraction(false);
-            urlconnection.setConnectTimeout(timeout);
-            urlconnection.setReadTimeout(timeout);
+            urlconnection.setConnectTimeout(TIMEOUT);
+            urlconnection.setReadTimeout(TIMEOUT);
             urlconnection.connect();
             int status = urlconnection.getResponseCode();
 
@@ -172,12 +175,63 @@ public class Controllers {
                     br.close();
                     Type listType = new TypeToken<List<Server>>() {}.getType();
                     final ObjectMapper objectMapper = new ObjectMapper();
-                    Server[] langs = objectMapper.readValue(sb.toString(), Server[].class);
-                    return new ArrayList(Arrays.asList(langs));
+                    Server[] servers = objectMapper.readValue(sb.toString(), Server[].class);
+                    return new ArrayList(Arrays.asList(servers));
             }
 
         } catch (MalformedURLException ex) {
            System.out.println("err"+getClass().getName());
+        } catch (IOException ex) {
+            System.out.println("err"+getClass().getName());
+        } finally {
+            if (urlconnection != null) {
+                try {
+                    urlconnection.disconnect();
+                } catch (Exception ex) {
+                    System.out.println("err"+getClass().getName());
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Allows to get hash / checksum from directory
+     * @param path : Directory's path
+     * @return
+     */
+    public List<Checksum> getChecksum(String serverName, String path) {
+        HttpURLConnection urlconnection = null;
+        try {
+            URL u = new URL(URL+serverName+path);
+            urlconnection = (HttpURLConnection) u.openConnection();
+            urlconnection.setRequestMethod("GET");
+            urlconnection.setRequestProperty("Content-length", "0");
+            urlconnection.setUseCaches(false);
+            urlconnection.setAllowUserInteraction(false);
+            urlconnection.setConnectTimeout(TIMEOUT);
+            urlconnection.setReadTimeout(TIMEOUT);
+            urlconnection.connect();
+            int status = urlconnection.getResponseCode();
+
+            switch (status) {
+                case 200:
+                case 201:
+                    BufferedReader br = new BufferedReader(new InputStreamReader(urlconnection.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line+"\n");
+                    }
+                    br.close();
+                    Type listType = new TypeToken<List<Checksum>>() {}.getType();
+                    final ObjectMapper objectMapper = new ObjectMapper();
+                    Checksum[] checksums = objectMapper.readValue(sb.toString(), Checksum[].class);
+                    return new ArrayList(Arrays.asList(checksums));
+            }
+
+        } catch (MalformedURLException ex) {
+            System.out.println("err"+getClass().getName());
         } catch (IOException ex) {
             System.out.println("err"+getClass().getName());
         } finally {
