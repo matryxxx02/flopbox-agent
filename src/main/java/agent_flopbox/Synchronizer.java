@@ -1,7 +1,9 @@
 package agent_flopbox;
 
-import agent_flopbox.Models.FileChecksum;
+import agent_flopbox.Models.Checksum;
 import agent_flopbox.Services.Controllers;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.hc.core5.http.ParseException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,10 +11,32 @@ import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Synchronizer {
+
+    private String urlApi = "http://localhost:8080/servers/" ;
+    private String serverName = "local";
+    private Controllers controller;
+
+    public String getUrlApi() {
+        return urlApi;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public Controllers getController() {
+        return controller;
+    }
+
+    public Synchronizer(String urlApi, String serverName) {
+        this.urlApi = urlApi;
+        this.serverName = serverName;
+        this.controller = new Controllers(urlApi, serverName);
+    }
+
     private static String sha256(String filepath) throws IOException, NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         // file hashing with DigestInputStream
@@ -29,33 +53,42 @@ public class Synchronizer {
         return result.toString();
     }
 
-    public void updateAllFilesFromRemote(String urlApi, String serverName, String path,List<FileChecksum> checksums) throws IOException, NoSuchAlgorithmException {
-        Controllers controller = new Controllers(urlApi, serverName);
+    public void updateAllFilesFromRemote(String path,List<Checksum> checksums) throws IOException, NoSuchAlgorithmException {
         File currentDir = new File(path);
-
-        for(File f: currentDir.listFiles()){
-            if(f.isFile()){
+        System.out.println(currentDir.listFiles().length);
+        if(currentDir.listFiles().length > 0){
+            for(File f: currentDir.listFiles()){
                 System.out.println(f.getPath());
-                FileChecksum checksum = checksums.stream()
-                        .filter(fileChecksum -> f.getPath().equals(fileChecksum.getPath()))
-                        .findAny()
-                        .orElse(null);
-                if(checksum == null){
-                    f.delete();
-                } else if (checksum.getHash() != sha256(f.getPath())){
-                    controller.saveFile(checksum.getPath());
+                if(f.isFile()){
+                    System.out.println(f.getPath());
+                    Checksum checksum = checksums.stream()
+                            .filter(fileChecksum -> FilenameUtils.separatorsToUnix(f.getPath()).equals(fileChecksum.getFilepath()))
+                            .findAny()
+                            .orElse(null);
+                    if(checksum == null){
+                        f.delete();
+                    } else if (checksum.getHash() != sha256(f.getPath())){
+                        controller.saveFile(checksum.getFilepath());
+                        checksums.remove(checksum);
+                    }
+                } else if (f.isDirectory()) {
+                    updateAllFilesFromRemote(f.getPath(), checksums);
                 }
-            } else if (f.isDirectory()) {
-                updateAllFilesFromRemote(urlApi, serverName, f.getPath(), checksums);
             }
         }
+        if(checksums.size()>0){
+            for(Checksum remoteFile : checksums ) {
+                System.out.println("pas en local: "+remoteFile.getFilepath());
+                controller.saveFile(remoteFile.getFilepath());
+            }
+        }
+
     }
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        List<FileChecksum> checksums = new ArrayList<>();
-        checksums.add(new FileChecksum("public/Trame.csv","bbda60b6b6102cfd6941007d118e873d8c4739c88f26ff05268402551e66e1be"));
-
-
-
+    public void sync () throws IOException, NoSuchAlgorithmException, ParseException {
+        List<Checksum> checksums = controller.getChecksum("");
+        checksums.forEach(x-> System.out.println(x.getHash()));
+        this.updateAllFilesFromRemote("./local/public/", checksums);
     }
+
 }

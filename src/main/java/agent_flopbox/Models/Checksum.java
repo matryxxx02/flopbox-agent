@@ -17,7 +17,7 @@ public class Checksum {
         return filepath;
     }
 
-    public String getFile() {
+    public String getHash() {
         return file;
     }
 }

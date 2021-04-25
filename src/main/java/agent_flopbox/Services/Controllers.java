@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -13,6 +14,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+
 import java.io.*;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
@@ -46,7 +51,9 @@ public class Controllers {
      * @return void
      */
     public void saveFile(String path) throws IOException {
-        FileUtils.copyURLToFile(new URL(urlApi + serverName+"/" + path), new File("./"+serverName+path));
+        String unixPath = FilenameUtils.separatorsToUnix(path);
+        System.out.println(urlApi + serverName+"/" + unixPath);
+        FileUtils.copyURLToFile(new URL(urlApi + serverName+"/" + unixPath), new File("./"+serverName+"/"+unixPath));
     }
 
     /**
@@ -148,18 +155,31 @@ public class Controllers {
         return null;
     }
 
+    public List<Checksum> getChecksum2(String path) throws IOException, ParseException {
+
+        String url = urlApi + serverName+"/" + FilenameUtils.separatorsToUnix(path);
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpGet connection = new HttpGet(url);
+        HttpResponse response = httpClient.execute(connection);
+        String checksums= EntityUtils.toString(((CloseableHttpResponse) response).getEntity(), "UTF-8");
+        final ObjectMapper objectMapper = new ObjectMapper();
+        Checksum[] checksumList = objectMapper.readValue(checksums, Checksum[].class);
+        return Arrays.asList(checksumList);
+
+    }
+
     /**
      * Allows to get hash / checksum from directory
-     * @param file : Directory's path
+     * @param path : Directory's path
      * @return
      */
-    public List<Checksum> getChecksum(File file) {
+    public List<Checksum> getChecksum(String path) {
         HttpURLConnection urlconnection = null;
         try {
-            URL u = new URL(urlApi+serverName+"/checksum/"+FilenameUtils.separatorsToUnix(file.getPath()));
+            URL u = new URL(urlApi+serverName+"/checksum/public");
+            System.out.println(urlApi+serverName+"/checksum/public");
             urlconnection = (HttpURLConnection) u.openConnection();
             urlconnection.setRequestMethod("GET");
-            urlconnection.setRequestProperty("Content-length", "0");
             urlconnection.setUseCaches(false);
             urlconnection.setAllowUserInteraction(false);
             urlconnection.setConnectTimeout(TIMEOUT);
@@ -179,6 +199,7 @@ public class Controllers {
                     br.close();
                     final ObjectMapper objectMapper = new ObjectMapper();
                     Checksum[] checksums = objectMapper.readValue(sb.toString(), Checksum[].class);
+                    urlconnection.disconnect();
                     return new ArrayList(Arrays.asList(checksums));
             }
 

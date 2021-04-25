@@ -18,7 +18,9 @@ public class FileWatcher {
         observer.addListener(listener);
         monitor.addObserver(observer);
         monitor.start();
+
         System.out.println("Starting watching files...");
+
         while (true) ;
     }
 }
