@@ -15,7 +15,7 @@ public class Main {
         Controllers controllers = new Controllers();
         Controllers api = new Controllers();
 
-        api.deleteFile("home", "/Second.py");
+        api.getServers("http://localhost:8080/server/", 10000);
     }
 }
 
