@@ -7,14 +7,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Checksum {
-    private static String sha256(String filepath) throws IOException, NoSuchAlgorithmException {
+    private String sha256(String filepath) throws IOException, NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         // file hashing with DigestInputStream
         try (DigestInputStream dis = new DigestInputStream(new FileInputStream(filepath), md)) {
             while (dis.read() != -1) ; //empty loop to clear the data
             md = dis.getMessageDigest();
         }
-
 
         // bytes to hex
         StringBuilder result = new StringBuilder();
@@ -24,8 +23,8 @@ public class Checksum {
         return result.toString();
     }
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        String hash = sha256("public/Trame.csv");
-        System.out.println(hash);
-    }
+    //public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+    //    String hash = sha256("public/Trame.csv");
+    //    System.out.println(hash);
+    //}
 }
