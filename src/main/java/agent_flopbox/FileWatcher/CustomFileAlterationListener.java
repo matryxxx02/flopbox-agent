@@ -66,7 +66,7 @@ public class CustomFileAlterationListener implements FileAlterationListener {
     public void onFileCreate(File file) {
         System.out.println("File created : " + file.getAbsolutePath())  ;
         try {
-            this.controller.uploadFile2(file);
+            this.controller.uploadFile(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -93,11 +93,6 @@ public class CustomFileAlterationListener implements FileAlterationListener {
     @Override
     public void onFileDelete(File file) {
         System.out.println(file.getName());
-        try {
-            FileInputStream fi = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
         System.out.println("File deleted : " + file.getAbsolutePath());
         try {
             this.controller.deleteFile(file);

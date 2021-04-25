@@ -37,8 +37,6 @@ public class Controllers {
         this.urlApi = urlApi;
         this.serverName = serverName;
     }
-
-    protected String URL = "http://localhost:8080/server/";
     protected int TIMEOUT = 10000;
 
     public Controllers(){}
@@ -51,7 +49,12 @@ public class Controllers {
         FileUtils.copyURLToFile(new URL(urlApi + serverName+"/" + path), new File("./"+serverName+path));
     }
 
-    public void uploadFile2(File file) throws IOException {
+    /**
+     *
+     * @param file
+     * @throws IOException
+     */
+    public void uploadFile(File file) throws IOException {
         String url = urlApi + serverName+"/" + FilenameUtils.separatorsToUnix(file.getPath());
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpPost uploadFile = new HttpPost(url);
@@ -71,87 +74,10 @@ public class Controllers {
     }
 
     /**
-     * Allows to upload local file to remote server
-     * @throws IOException
-     */
-    public void uploadFile(File file) throws  IOException{
-
-        URLConnection urlconnection = null;
-        try {
-            URL url = new URL(urlApi + serverName + "/" + FilenameUtils.separatorsToUnix(file.getPath()));
-            System.out.println(urlApi + serverName + "/" + FilenameUtils.separatorsToUnix(file.getPath()));
-
-            urlconnection = url.openConnection();
-            urlconnection.setDoOutput(true);
-            urlconnection.setDoInput(true);
-
-            if (urlconnection instanceof HttpURLConnection) {
-                ((HttpURLConnection) urlconnection).setRequestMethod("POST");
-                ((HttpURLConnection) urlconnection).setRequestProperty("Content-type", "Multipart/form-data");
-                ((HttpURLConnection) urlconnection).connect();
-            }
-
-            BufferedOutputStream bos = new BufferedOutputStream(urlconnection.getOutputStream());
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-            int i;
-            // read byte by byte until end of stream
-            while ((i = bis.read()) > 0) {
-                bos.write(i);
-            }
-            bis.close();
-            bos.close();
-            System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
-            ((HttpURLConnection) urlconnection).disconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Allows to move the deleted file to the right directory
-     * @throws IOException
-     */
-    public void uploadFileBeforeDeleted(File file) throws  IOException{
-
-        URLConnection urlconnection = null;
-        try {
-            URL url = new URL(urlApi+serverName+"/deleted/"+FilenameUtils.separatorsToUnix(file.getPath()));
-            System.out.println(serverName+"/deleted/"+FilenameUtils.separatorsToUnix(file.getPath()));
-            urlconnection = url.openConnection();
-            urlconnection.setDoOutput(true);
-            urlconnection.setDoInput(true);
-
-            if (urlconnection instanceof HttpURLConnection) {
-                ((HttpURLConnection) urlconnection).setRequestMethod("POST");
-                ((HttpURLConnection) urlconnection).setRequestProperty("Content-type", "Multipart/form-data");
-                ((HttpURLConnection) urlconnection).connect();
-            }
-
-
-
-            //BufferedOutputStream bos = new BufferedOutputStream(urlconnection.getOutputStream());
-            //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-            //int i;
-            // read byte by byte until end of stream
-            //while ((i = bis.read()) > 0) {
-            //    bos.write(i);
-            //}
-            //bis.close();
-            //bos.close();
-            System.out.println(((HttpURLConnection) urlconnection).getResponseMessage());
-            ((HttpURLConnection) urlconnection).disconnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    /**
      * Allows to delete file and move the file in right directory in remote server
      * @throws IOException
      */
     public void deleteFile(File file) throws IOException {
-        uploadFileBeforeDeleted(file);
 
         URLConnection urlconnection = null;
         try {
@@ -180,7 +106,7 @@ public class Controllers {
     public List<Server> getServers() {
         HttpURLConnection urlconnection = null;
         try {
-            URL u = new URL(URL);
+            URL u = new URL(urlApi);
             urlconnection = (HttpURLConnection) u.openConnection();
             urlconnection.setRequestMethod("GET");
             urlconnection.setRequestProperty("Content-length", "0");
@@ -201,7 +127,6 @@ public class Controllers {
                         sb.append(line+"\n");
                     }
                     br.close();
-                    Type listType = new TypeToken<List<Server>>() {}.getType();
                     final ObjectMapper objectMapper = new ObjectMapper();
                     Server[] servers = objectMapper.readValue(sb.toString(), Server[].class);
                     return new ArrayList(Arrays.asList(servers));
@@ -225,13 +150,13 @@ public class Controllers {
 
     /**
      * Allows to get hash / checksum from directory
-     * @param path : Directory's path
+     * @param file : Directory's path
      * @return
      */
-    public List<Checksum> getChecksum(String serverName, String path) {
+    public List<Checksum> getChecksum(File file) {
         HttpURLConnection urlconnection = null;
         try {
-            URL u = new URL(URL+serverName+path);
+            URL u = new URL(urlApi+serverName+"/checksum/"+FilenameUtils.separatorsToUnix(file.getPath()));
             urlconnection = (HttpURLConnection) u.openConnection();
             urlconnection.setRequestMethod("GET");
             urlconnection.setRequestProperty("Content-length", "0");
@@ -252,7 +177,6 @@ public class Controllers {
                         sb.append(line+"\n");
                     }
                     br.close();
-                    Type listType = new TypeToken<List<Checksum>>() {}.getType();
                     final ObjectMapper objectMapper = new ObjectMapper();
                     Checksum[] checksums = objectMapper.readValue(sb.toString(), Checksum[].class);
                     return new ArrayList(Arrays.asList(checksums));
@@ -273,6 +197,5 @@ public class Controllers {
         }
         return null;
     }
-
 
 }
