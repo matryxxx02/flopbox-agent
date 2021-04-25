@@ -5,14 +5,18 @@ import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class CustomFileAlterationListener implements FileAlterationListener {
 
     private String serverName;
+    private String urlApi;
     private Controllers controller;
 
-    public CustomFileAlterationListener(String alias) {
+    public CustomFileAlterationListener(String urlApi, String alias) {
+        this.urlApi = urlApi;
         this.serverName = alias;
     }
 
@@ -22,7 +26,7 @@ public class CustomFileAlterationListener implements FileAlterationListener {
      */
     @Override
     public void onStart(FileAlterationObserver fileAlterationObserver) {
-        this.controller = new Controllers();
+        this.controller = new Controllers(urlApi, serverName);
     }
 
     /**
@@ -60,9 +64,9 @@ public class CustomFileAlterationListener implements FileAlterationListener {
      */
     @Override
     public void onFileCreate(File file) {
-        System.out.println("File created : " + file.getPath())  ;
+        System.out.println("File created : " + file.getAbsolutePath())  ;
         try {
-            this.controller.uploadFile(this.serverName,file.getPath());
+            this.controller.uploadFile2(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -76,7 +80,7 @@ public class CustomFileAlterationListener implements FileAlterationListener {
     public void onFileChange(File file) {
         System.out.println("File changed : " + file.getAbsolutePath());
         try {
-            this.controller.uploadFile(this.serverName,file.getPath());
+            this.controller.uploadFile(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -88,9 +92,15 @@ public class CustomFileAlterationListener implements FileAlterationListener {
      */
     @Override
     public void onFileDelete(File file) {
+        System.out.println(file.getName());
+        try {
+            FileInputStream fi = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         System.out.println("File deleted : " + file.getAbsolutePath());
         try {
-            this.controller.deleteFile(this.serverName,file.getPath());
+            this.controller.deleteFile(file);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,6 +1,7 @@
 package agent_flopbox;
 
 import agent_flopbox.Models.FileChecksum;
+import agent_flopbox.Services.Controllers;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,12 +29,11 @@ public class Synchronizer {
         return result.toString();
     }
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        List<FileChecksum> checksums = new ArrayList<>();
-        checksums.add(new FileChecksum("public/Trame.csv","bbda60b6b6102cfd6941007d118e873d8c4739c88f26ff05268402551e66e1be"));
-        File mainDir = new File("public");
+    public void updateAllFilesFromRemote(String urlApi, String serverName, String path,List<FileChecksum> checksums) throws IOException, NoSuchAlgorithmException {
+        Controllers controller = new Controllers(urlApi, serverName);
+        File currentDir = new File(path);
 
-        for(File f: mainDir.listFiles()){
+        for(File f: currentDir.listFiles()){
             if(f.isFile()){
                 System.out.println(f.getPath());
                 FileChecksum checksum = checksums.stream()
@@ -41,13 +41,21 @@ public class Synchronizer {
                         .findAny()
                         .orElse(null);
                 if(checksum == null){
-                    //TODO delete the file
+                    f.delete();
                 } else if (checksum.getHash() != sha256(f.getPath())){
-                    //TODO download the file
+                    controller.saveFile(checksum.getPath());
                 }
             } else if (f.isDirectory()) {
-
+                updateAllFilesFromRemote(urlApi, serverName, f.getPath(), checksums);
             }
         }
+    }
+
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+        List<FileChecksum> checksums = new ArrayList<>();
+        checksums.add(new FileChecksum("public/Trame.csv","bbda60b6b6102cfd6941007d118e873d8c4739c88f26ff05268402551e66e1be"));
+
+
+
     }
 }

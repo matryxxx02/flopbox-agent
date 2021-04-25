@@ -1,41 +1,73 @@
 package agent_flopbox.Services;
 
 import org.apache.commons.io.FileUtils;
-
+import org.apache.commons.io.FilenameUtils;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Allows to manage actions between local files and remite files
  */
 public class Controllers {
 
-    public Controllers(){}
+    private String urlApi;
+    private String serverName;
+
+    public Controllers(String urlApi, String serverName){
+        this.urlApi = urlApi;
+        this.serverName = serverName;
+    }
+
     /**
      * Allows to save the File form the remote server
-     * @param alias Server's alias
      * @param path File's path
      * @return void
      */
-    public void saveFile(String alias, String path) throws IOException {
-        FileUtils.copyURLToFile(new URL("http://localhost:8080/file/" + alias+"/" + path), new File("./"+alias+path));
+    public void saveFile(String path) throws IOException {
+        FileUtils.copyURLToFile(new URL(urlApi + serverName+"/" + path), new File("./"+serverName+path));
+    }
+
+    public void uploadFile2(File file) throws IOException {
+        String url = urlApi + serverName+"/" + FilenameUtils.separatorsToUnix(file.getPath());
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpPost uploadFile = new HttpPost(url);
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+
+        // This attaches the file to the POST:
+        builder.addBinaryBody(
+                "file",
+                new FileInputStream(file),
+                ContentType.APPLICATION_OCTET_STREAM,
+                file.getName()
+        );
+
+        HttpEntity multipart = builder.build();
+        uploadFile.setEntity(multipart);
+        CloseableHttpResponse response = httpClient.execute(uploadFile);
     }
 
     /**
      * Allows to upload local file to remote server
-     * @param alias Server's alias
-     * @param path File's path
      * @throws IOException
      */
-    public void uploadFile(String alias, String path) throws  IOException{
+    public void uploadFile(File file) throws  IOException{
 
         URLConnection urlconnection = null;
         try {
-            File file = FileUtils.getFile(alias, path);
-            URL url = new URL("http://localhost:8080/file/"+alias+path);
-            System.out.println(alias+path);
+            URL url = new URL(urlApi + serverName + "/" + FilenameUtils.separatorsToUnix(file.getPath()));
+            System.out.println(urlApi + serverName + "/" + FilenameUtils.separatorsToUnix(file.getPath()));
+
             urlconnection = url.openConnection();
             urlconnection.setDoOutput(true);
             urlconnection.setDoInput(true);
@@ -64,17 +96,14 @@ public class Controllers {
 
     /**
      * Allows to move the deleted file to the right directory
-     * @param alias Server's alias
-     * @param path File's path in local
      * @throws IOException
      */
-    public void uploadFileBeforeDeleted(String alias, String path) throws  IOException{
+    public void uploadFileBeforeDeleted(File file) throws  IOException{
 
         URLConnection urlconnection = null;
         try {
-            File file = FileUtils.getFile(alias, path);
-            URL url = new URL("http://localhost:8080/file/"+alias+"/deleted/"+file.getName());
-            System.out.println(alias+"/deleted/"+file.getName());
+            URL url = new URL(urlApi+serverName+"/deleted/"+FilenameUtils.separatorsToUnix(file.getPath()));
+            System.out.println(serverName+"/deleted/"+FilenameUtils.separatorsToUnix(file.getPath()));
             urlconnection = url.openConnection();
             urlconnection.setDoOutput(true);
             urlconnection.setDoInput(true);
@@ -104,17 +133,15 @@ public class Controllers {
 
     /**
      * Allows to delete file and move the file in right directory in remote server
-     * @param alias Server's alias
-     * @param path File's path
      * @throws IOException
      */
-    public void deleteFile(String alias, String path) throws IOException {
-        uploadFileBeforeDeleted(alias, path);
+    public void deleteFile(File file) throws IOException {
+        uploadFileBeforeDeleted(file);
 
         URLConnection urlconnection = null;
         try {
-            URL url = new URL("http://localhost:8080/file/"+alias+path);
-            System.out.println(alias+path);
+            URL url = new URL(urlApi+serverName+"/"+FilenameUtils.separatorsToUnix(file.getPath()));
+            System.out.println(urlApi+serverName+"/"+FilenameUtils.separatorsToUnix(file.getPath()));
             urlconnection = url.openConnection();
             urlconnection.setDoOutput(true);
             urlconnection.setDoInput(true);
