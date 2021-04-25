@@ -1,11 +1,20 @@
-package FileWatcher;
+package agent_flopbox.FileWatcher;
 
+import agent_flopbox.Services.Controllers;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 
 import java.io.File;
+import java.io.IOException;
 
 public class CustomFileAlterationListener implements FileAlterationListener {
+
+    private String serverName;
+    private Controllers controller;
+
+    public CustomFileAlterationListener(String alias) {
+        this.serverName = alias;
+    }
 
     /**
      *
@@ -13,6 +22,7 @@ public class CustomFileAlterationListener implements FileAlterationListener {
      */
     @Override
     public void onStart(FileAlterationObserver fileAlterationObserver) {
+        this.controller = new Controllers();
     }
 
     /**
@@ -50,7 +60,12 @@ public class CustomFileAlterationListener implements FileAlterationListener {
      */
     @Override
     public void onFileCreate(File file) {
-        System.out.println("File created : " + file.getAbsolutePath())  ;
+        System.out.println("File created : " + file.getPath())  ;
+        try {
+            this.controller.uploadFile(this.serverName,file.getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -60,7 +75,11 @@ public class CustomFileAlterationListener implements FileAlterationListener {
     @Override
     public void onFileChange(File file) {
         System.out.println("File changed : " + file.getAbsolutePath());
-        //TODO :
+        try {
+            this.controller.uploadFile(this.serverName,file.getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -70,6 +89,11 @@ public class CustomFileAlterationListener implements FileAlterationListener {
     @Override
     public void onFileDelete(File file) {
         System.out.println("File deleted : " + file.getAbsolutePath());
+        try {
+            this.controller.deleteFile(this.serverName,file.getPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
